@@ -4,6 +4,7 @@ import { S, ctx, dr, saveSettings, jumpTo, clockInfo, MLAB, ytd } from './store.
 import { monthAlerts, MONTHS, MONTHS_SHORT, dayIdxToDate } from './engine.js';
 import { make, afterMount, ranges, COL } from './charts.js';
 import { hooks, section, card, stat, callout, chartBox, monthSelect, seg, slider, FEATURE_NAMES, csvDownload, simBadge } from './ui.js';
+import { validationSection } from './pages_validation.js';
 
 const STRATS = {
   shift: ['Shift to quiet hours', 'Move flexible usage (pre-cooling, pumps, EV charging) out of the busy hours and into the quiet ones. Energy is kept — just moved.'],
@@ -166,6 +167,7 @@ export function pageAI() {
 
   return h('div', null, section('Behind the scenes', 'For lecturers, analysts and the curious: how GridCast is built and how well it performs.'),
     steps,
+    validationSection(),
     section('The scoreboard', `All models trained on 2020 and tested on the unseen 2021 year. ★ = best single model. Click “Use this” to switch the whole dashboard.`),
     card('', h('div', { style: 'overflow-x:auto' }, table), h('p', { class: 'tiny', style: 'margin-top:10px' }, 'Errors are in MW because the research data is a whole utility network; the dashboard rescales to your building. Peak-hour = demand ≥ the 90th percentile of the training year.')),
     h('div', { class: 'grid g-wide', style: 'margin-top:20px' }, why, card('', h('h3', null, 'Hour of day: where each model errs'), c1.box)),

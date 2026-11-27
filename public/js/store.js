@@ -3,7 +3,7 @@ import { buildTimeline, peakMask, mdMaskFor, monthlyBills, applyDR, applyPlanToA
 
 const KEY = 'gridcast.v2';
 export const S = {
-  data: null, tl: null,
+  data: null, tl: null, validation: null,
   settings: null,
   clock: { y: 2021, m: 5, d: 23, hour: 14, playing: false, speed: 1, pauseOnAlert: true },
   page: 'today', month: 5, usageView: 'day', usageDay: null, savMonth: null,

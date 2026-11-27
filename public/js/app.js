@@ -202,6 +202,7 @@ async function boot() {
     raw = await res.json();
   } catch (e) { return failCard('Couldn’t load the forecast data', String(e.message || e)); }
   try { init(raw); } catch (e) { return failCard('The forecast data looks wrong', String(e.message || e)); }
+  try { const vr = await fetch('data/validation.json?v=1'); if (vr.ok) { const v = await vr.json(); if (v && v.schema_version === 1 && v.cubems) S.validation = v; } } catch (e) { /* validation page is optional */ }
   await (document.fonts ? document.fonts.ready : Promise.resolve());
   try { await Promise.all([document.fonts.load("700 20px Caveat"), document.fonts.load("600 20px Fraunces")]); } catch (e) { /* ignore */ }
   const i = findAlertMoment(5) ?? findBusiestHour(5);

@@ -47,13 +47,34 @@ python gridcast_pipeline.py --excel "..." --trials 25     # Bayesian (Optuna) tu
 ```
 This rewrites `public/data/gridcast_data.json`. Commit it and redeploy.
 
+## Validation on real commercial buildings (`validation/`)
+Your supervisor asked for validation on real commercial-building data. Two datasets were supplied:
+
+| | CU-BEMS (Bangkok office) | BDG2 (1,636 buildings) |
+|---|---|---|
+| Status | **Done** — results in the app (Behind the scenes) | **Script ready, not run**: the supplied zip held only Git LFS stubs (131-byte pointer files, no data) |
+| Why useful | Tropical climate, real building, AC / lighting / plug split | Breadth: many buildings and uses |
+| Limits | One building, ~3.7 test months, no outdoor weather, `2019Floor6.csv` truncated | Temperate climates (N. America / Europe) |
+
+```bash
+cd validation
+python prepare_cubems.py --src <folder with the 14 CU-BEMS csv files>     # 733 MB of 1-minute data -> data/cubems_hourly.csv
+python validate_cubems.py --sewa "<SEWA workbook>"                        # -> results/cubems_results.json
+# BDG2: first get the REAL files (git lfs install && git clone https://github.com/buds-lab/building-data-genome-project-2.git)
+python validate_bdg2.py --root <path to that clone> --max-buildings 100   # ~10 s per building
+python export_for_web.py                                                  # -> public/data/validation.json (shown in the app)
+```
+Headline (CU-BEMS, hour-ahead, trained on 12 months, tested on the unseen months): CV(RMSE) ≈ 10% and NMBE ≈ −0.1%, inside ASHRAE
+Guideline 14's hourly limits (30% / ±10%); the naive last-hour guess scores ≈ 49%. A model trained on SEWA and applied as-is scores ≈ 50%
+(fails) — so GridCast must be trained **per building**; the SEWA model is the prototype.
+
 ## Tests
 ```bash
 cd tests
 node engine_check.mjs && python engine_check.py      # JS bill/demand-response engine == Python reference (≈1e-9)
 node scenario_check.mjs                              # what-if levers, rebound, realistic-vs-perfect-forecast savings
 python serve_like_vercel.py 8702 &                   # serves public/ with the headers (incl. CSP) from vercel.json
-python browser_smoke.py http://localhost:8702        # 25 browser checks (needs: pip install playwright && playwright install chromium)
+python browser_smoke.py http://localhost:8702        # 28 browser checks (needs: pip install playwright && playwright install chromium)
 ```
 
 ## Check the maths

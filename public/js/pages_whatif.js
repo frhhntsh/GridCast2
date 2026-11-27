@@ -105,7 +105,8 @@ export function pageWhatIf() {
     card('', h('div', { class: 'label' }, 'Start from a scenario'), h('div', { style: 'margin:10px 0 4px' }, presets),
       h('div', { class: 'grid g2', style: 'margin-top:14px' },
         h('div', { class: 'field', style: 'margin:0' }, h('span', null, 'Which days?'), seg([['wk', 'Weekdays'], ['all', 'Every day']], o.weekdaysOnly ? 'wk' : 'all', (v) => setScn({ weekdaysOnly: v === 'wk' }))), monthSelect())),
-    h('div', { class: 'sec', style: 'margin:22px 0 10px' }, h('div', { class: 'hand' }, 'switch on the levers you can really pull')),
+    h('div', { class: 'sec', style: 'margin:22px 0 10px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap' }, h('div', { class: 'hand' }, 'switch on the levers you can really pull'),
+      S.validation ? h('button', { class: 'chipbtn', title: 'From the CU-BEMS Bangkok office building (real meter data)', onclick: () => { const sh = S.validation.cubems.load_shares['overall_%']; setScn({ levers: levers.map((l) => (l.id === 'hvac' ? { ...l, share: Math.round(sh.ac_kw) } : l.id === 'light' ? { ...l, share: Math.round(sh.light_kw) } : l)) }); } }, `Use real-office shares (AC ${Math.round(S.validation.cubems.load_shares['overall_%'].ac_kw)}%, lights ${Math.round(S.validation.cubems.load_shares['overall_%'].light_kw)}%)`) : null),
     levers.map(leverCard),
     sumShare > 90 ? h('p', { class: 'bad', style: 'margin:6px 0 10px' }, `The active levers add up to ${sumShare}% of the building’s load — that is unrealistic. Lower their shares.`) : null,
     h('details', { class: 'fold' }, h('summary', null, 'Room-temperature assumptions (aircond)'),
@@ -132,7 +133,8 @@ export function pageWhatIf() {
     'The peak charge is set by ONE hour a month — cutting that hour matters far more than trimming energy overall.',
     'Cutting a load and getting the energy back right after (the “comes back” slider) can create a new, higher peak.',
     'Deferrable loads (EV chargers, pumps with storage) are the safest levers: they lose nothing, they just move.',
-    'The baseline is the real meter, so numbers match the Bills page.'].map((x) => h('li', null, x))));
+    'The baseline is the real meter, so numbers match the Bills page.',
+    S.validation ? `Real example: a Bangkok office building lets its aircond drop at lunch (${nf(S.validation.cubems.lunch_effect.ac_11h)} → ${nf(S.validation.cubems.lunch_effect.ac_12h)} kW), then the whole building jumps to ${nf(S.validation.cubems.lunch_effect.total_13h)} kW at 1 PM — higher than at 11 AM (${nf(S.validation.cubems.lunch_effect.total_11h)} kW).` : null].filter(Boolean).map((x) => h('li', null, x))));
 
   // ---------------------------------------------------------------- results
   const good = saving > 0.5, tone = good ? (over ? 'watch' : 'ok') : 'alert';

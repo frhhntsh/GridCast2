@@ -87,6 +87,9 @@ with sync_playwright() as p:
     check("weather note shown", "Does weather help the forecast?" in txt)
     check("interval coverage shown", "covered" in txt and "target: 90%" in txt)
     check("data contract marked as planned", "PLANNED" in txt)
+    check("real-building validation section shown", "validated on a real building" in txt.lower() and "cu-bems" in txt.lower())
+    check("BDG2 honestly marked as not run", "NOT RUN YET" in txt)
+    check("SEWA-model-fails-as-is finding shown", "does the sewa-trained model work" in txt.lower())
     ctx.close()
 
     # ---------------------------------------------------------------- corrupted settings
