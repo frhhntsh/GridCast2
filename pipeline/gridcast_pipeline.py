@@ -63,7 +63,7 @@ def _clean_time_label(v) -> bool:
     return bool(re.fullmatch(r"\d{1,2}[: ]00(:00)?", str(v).strip()))
 
 
-def load_dataset(file_bytes: bytes):
+def load_dataset(file_bytes: bytes): #Data Preparation
     xls = pd.ExcelFile(io.BytesIO(file_bytes))
     report: dict = {}
 
@@ -90,12 +90,12 @@ def load_dataset(file_bytes: bytes):
     load = load[~load.index.duplicated(keep="first")]
     grid = pd.date_range(load.index.min(), load.index.max(), freq="h")
     report["Hours missing from the hourly grid"] = int(len(grid) - len(load))
-    load = load.reindex(grid)
+    load = load.reindex(grid) #remove zero values
     report["Zero / negative load readings"] = int((load <= 0).sum())
     load[load <= 0] = np.nan
     med = load.rolling(168, center=True, min_periods=24).median()
     mad = (load - med).abs().rolling(168, center=True, min_periods=24).median()
-    spike = (load - med).abs() > 8 * 1.4826 * mad.clip(lower=1)
+    spike = (load - med).abs() > 8 * 1.4826 * mad.clip(lower=1) #remove spikes/outliers
     report["Load spikes removed (robust MAD rule)"] = int(spike.sum())
     load[spike] = np.nan
     report["Load hours interpolated"] = int(load.isna().sum())
@@ -133,7 +133,7 @@ def load_dataset(file_bytes: bytes):
     return df, report
 
 
-def make_features(d: pd.DataFrame) -> pd.DataFrame:
+def make_features(d: pd.DataFrame) -> pd.DataFrame: #Feature Engineering
     out = d.copy()
     t0 = out.index - pd.Timedelta(hours=1)           # start of the interval being forecast
     for lag in LAGS:
@@ -215,7 +215,7 @@ def cv_scores(name, params, X, y):
     return pd.DataFrame(rows).mean().to_dict()
 
 
-def tune_bayesian(name, X, y, n_trials):
+def tune_bayesian(name, X, y, n_trials): #Tuning Hyperparameter (Optuna)
     def objective(trial):
         p = suggest_params(trial, name)
         return cv_scores(name, p, X, y)["RMSE"]
@@ -239,7 +239,7 @@ def peak_detection(y, p, t0, thr):
             "Daily peak size error %": float(mag.mean())}
 
 
-def train_and_benchmark(_data: pd.DataFrame, split_mode: str, n_trials: int):
+def train_and_benchmark(_data: pd.DataFrame, split_mode: str, n_trials: int): #Model Training & Cross Validation
     data = make_features(_data).dropna()
     features = [c for c in data.columns if c not in ("load", "service_date")]
     split_date = SPLIT_MODES[split_mode]
